@@ -1,4 +1,4 @@
-import requests
+import requests,json
 from lxml import etree
 
 class Budejie_Spider(object):
@@ -6,6 +6,12 @@ class Budejie_Spider(object):
         self.start_url = 'http://www.budejie.com/'
         self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36'}
         self.page_num = 1
+
+    def save_content(self,content):
+        with open('budejie.json', 'a', encoding='utf-8') as f:  # 将提取的数据写入到文件当中
+            f.write(json.dumps(content, ensure_ascii=False))
+            f.write('\r\n')
+
 
     def get_html_content(self,html_str):  # 提取指定作者头像地址，作者昵称，段子内容，段子图片地址，段子点赞数
         temp_html_object = etree.HTML(html_str)
@@ -18,10 +24,9 @@ class Budejie_Spider(object):
                 items['tittle_content'] = temp_son_object.xpath(".//div[@class='j-r-list-c-desc']/a/text()")
                 items['tittle_image_url'] = temp_son_object.xpath(".//div[@class='j-r-list-c-img']//img/@data-original")
                 items['num_for_nice'] = temp_son_object.xpath(".//li[@class='j-r-list-tool-l-up']/span/text()")
-                print(items)
+                self.save_content(items)
 
-
-    def parse_url(self,url = 'http://www.budejie.com/'):  # 解析网址
+    def parse_url(self,url = 'http://www.budejie.com/'):  # 解析网址,递归方式访问网址
         html_str = requests.get(url, headers=self.headers)
         print(url)
         self.page_num += 1
@@ -31,6 +36,10 @@ class Budejie_Spider(object):
             return self.parse_url(next_page_url)
         else:
             print('Done')
+
+
+    def __del__(self):
+        print('完成所有页面的爬取')
 
 
     def run(self):
